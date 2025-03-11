@@ -14,14 +14,12 @@ const game = new Phaser.Game(config);
 let territories, selectedTerritory, playerGold = 100, enemyGold = 80, turn = "Player", instructions;
 
 function preload() {
-    // Load sprite assets (replace with your own or free ones from OpenGameArt.org)
-    this.load.image('castle_player', 'https://opengameart.org/sites/default/files/castle_blue.png');
-    this.load.image('castle_enemy', 'https://opengameart.org/sites/default/files/castle_red.png');
-    this.load.image('castle_neutral', 'https://opengameart.org/sites/default/files/castle_gray.png');
+    this.load.image('castle_player', 'assets/castle_player.png');
+    this.load.image('castle_enemy', 'assets/castle_enemy.png');
+    this.load.image('castle_neutral', 'assets/castle_neutral.png');
 }
 
 function create() {
-    // Territory data (name, position, owner, army)
     territories = {
         "Northland": { x: 200, y: 100, owner: "Player", army: 50, sprite: null },
         "Southland": { x: 200, y: 400, owner: "Enemy", army: 30, sprite: null },
@@ -29,25 +27,22 @@ function create() {
         "Westland": { x: 100, y: 250, owner: "Neutral", army: 20, sprite: null }
     };
 
-    // Create territory sprites
     for (let name in territories) {
         let t = territories[name];
         let spriteKey = t.owner === "Player" ? 'castle_player' : t.owner === "Enemy" ? 'castle_enemy' : 'castle_neutral';
-        t.sprite = this.add.sprite(t.x, t.y, spriteKey).setScale(0.5).setInteractive();
+        t.sprite = this.add.sprite(t.x, t.y, spriteKey).setScale(2).setInteractive(); // Scale 2x for visibility
         t.sprite.on('pointerdown', () => handleClick(name));
         this.add.text(t.x - 20, t.y - 40, name.slice(0, 3), { fontSize: '16px', color: '#fff' });
         this.add.text(t.x - 20, t.y + 30, `Army: ${t.army}`, { fontSize: '14px', color: '#fff' });
     }
 
-    // UI
     this.add.text(10, 10, `Gold: ${playerGold}`, { fontSize: '20px', color: '#fff' });
     this.add.text(10, 40, `Turn: ${turn}`, { fontSize: '20px', color: '#fff' });
 
-    // Instructions
     instructions = this.add.text(200, 200, 
         "Crown Conquest Online\n" +
         "Objective: Conquer all territories.\n" +
-        "1. Click a blue castle to select it.\n" +
+        "1. Click a castle to select it.\n" +
         "2. Click a nearby castle to attack.\n" +
         "3. Win with higher army (random factor).\n" +
         "4. Earn 10 gold/turn; press 'R' for +10 soldiers (20 gold).\n" +
@@ -57,13 +52,11 @@ function create() {
     ).setOrigin(0.5);
     instructions.setVisible(true);
 
-    // Keyboard input
     this.input.keyboard.on('keydown-I', () => instructions.setVisible(!instructions.visible));
     this.input.keyboard.on('keydown-R', () => recruitSoldiers());
 }
 
 function update() {
-    // Update UI
     this.children.list.forEach(child => {
         if (child.text && child.text.startsWith('Gold')) child.setText(`Gold: ${playerGold}`);
         if (child.text && child.text.startsWith('Turn')) child.setText(`Turn: ${turn}`);
@@ -89,7 +82,7 @@ function handleClick(name) {
     let t = territories[name];
     if (!selectedTerritory && t.owner === "Player") {
         selectedTerritory = name;
-        t.sprite.setTint(0xffff00); // Highlight selected
+        t.sprite.setTint(0xffff00); // Yellow highlight
     } else if (selectedTerritory && name !== selectedTerritory && isAdjacent(territories[selectedTerritory], t)) {
         battle(territories[selectedTerritory], t);
         territories[selectedTerritory].sprite.clearTint();
